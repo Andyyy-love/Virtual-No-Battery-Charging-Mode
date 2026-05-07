@@ -1,0 +1,2 @@
+目前的理解是charging_control.cpp是顶层
+调用bootlogo.cpp里面的bootlogo_show_charging

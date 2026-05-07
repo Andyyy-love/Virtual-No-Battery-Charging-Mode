@@ -1,0 +1,803 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (c) 2019 MediaTek Inc.
+ */
+
+/dts-v1/;
+/plugin/;
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/interrupt-controller/arm-gic.h>
+#include <dt-bindings/pinctrl/mt6768-pinfunc.h>
+
+&reserved_memory {
+	reserve-memory-scp_share {
+		compatible = "mediatek,reserve-memory-scp_share";
+		no-map;
+		size = <0 0x00d00000>;
+		alignment = <0 0x1000000>;
+		alloc-ranges = <0 0x40000000 0 0x50000000>;
+	};
+};
+
+/* chosen */
+&chosen {
+
+	atag,videolfb-fb_base_l = <0x7e605000>;
+	atag,videolfb-fb_base_h = <0x0>;
+	atag,videolfb-islcmfound = <1>;
+	atag,videolfb-islcm_inited = <0>;
+	atag,videolfb-fps= <6000>;
+	atag,videolfb-vramSize= <0x017e8000>;
+	atag,videolfb-lcmname=
+		"hx83112b_fhdp_dsi_cmd_auo_rt5081_drv";
+};
+
+&pmic_clock_buffer_ctrl {
+	compatible = "mediatek,mt8786-clkbuf";
+};
+
+&mt6358_clkbuf {
+	compatible = "mediatek,mt6358-tb-clkbuf";
+};
+
+&mtk_leds {
+	compatible = "mediatek,pwm-leds";
+	backlight {
+		led_mode = <5>;
+		pwms = <&disp_pwm 0 39385>;
+		pwm-names = "lcd-backlight";
+		pwm_config = <0 3 0 0 0>;
+		max-brightness = <4095>;
+		max-hw-brightness = <4095>;
+		min-hw-brightness = <1>;
+	};
+};
+
+&odm {
+	led0:led@0 {
+		compatible = "mediatek,red";
+		led_mode = <0>;
+		data = <1>;
+		pwm_config = <0 0 0 0 0>;
+	};
+	led1:led@1 {
+		compatible = "mediatek,green";
+		led_mode = <0>;
+		data = <1>;
+		pwm_config = <0 0 0 0 0>;
+	};
+	led2:led@2 {
+		compatible = "mediatek,blue";
+		led_mode = <0>;
+		data = <1>;
+		pwm_config = <0 0 0 0 0>;
+	};
+	led3:led@3 {
+		compatible = "mediatek,jogball-backlight";
+		led_mode = <0>;
+		data = <1>;
+		pwm_config = <0 0 0 0 0>;
+	};
+	led4:led@4 {
+		compatible = "mediatek,keyboard-backlight";
+		led_mode = <0>;
+		data = <1>;
+		pwm_config = <0 0 0 0 0>;
+	};
+	led5:led@5 {
+		compatible = "mediatek,button-backlight";
+		led_mode = <0>;
+		data = <1>;
+		pwm_config = <0 0 0 0 0>;
+	};
+	led6:led@6 {
+		compatible = "mediatek,lcd-backlight";
+		led_mode = <5>;
+		data = <1>;
+		pwm_config = <0 3 0 0 0>;
+	};
+/*	vibrator0:vibrator@0 {
+		compatible = "mediatek,vibrator";
+		vib_timer = <25>;
+		vib_limit = <9>;
+		vib_vol= <9>;
+	};*/
+};
+
+&i2c2 {
+	clock-frequency = <400000>;
+
+	mtk-usb@60 {
+		compatible = "mediatek,mtk-usb";
+		reg = <0x60>;
+		status = "okay";
+	};
+};
+
+&i2c3 {
+	aw883xx_smartpa_0: aw883xx@34 {
+		compatible = "awinic,aw883xx_smartpa";
+		#sound-dai-cells = <0>;
+		reg = <0x34>;
+		reset-gpio = <&pio 159 0x0>;
+		sync-load = <1>; /*固件加载方式，若驱动以 KO 方式编译需配置为 1*/
+		sound-channel = <0>; /*第 1 个 PA sound-channel 配置为 0*/
+		re-min = <1000>;
+		re-max= <40000>;
+		status = "okay";
+	};
+	aw883xx_smartpa_1: aw883xx@35 {
+		compatible = "awinic,aw883xx_smartpa";
+		#sound-dai-cells = <0>;
+		reg = <0x35>;
+		reset-gpio = <&pio 22 0x0>;
+		sync-load = <1>; /*固件加载方式，若驱动以 KO 方式编译需配置为 1*/
+		sound-channel = <1>; /*第 2 个 PA sound-channel 配置为 1*/
+		re-min = <1000>;
+		re-max= <40000>;
+		status = "okay";
+	};
+};
+
+/* accdet start */
+&utos {
+	microtrust,real-drv = <1>;
+};
+&accdet {
+	/* accdet micbias voltage: 0x07,2.7v;0x05,2.5v;0x02,1.9v */
+	accdet-mic-vol = <6>;
+	headset-mode-setting = <0x500 0x500 1 0x1f0
+				0x800 0x800 0x20 0x44
+				0x00 0x00
+				0xe 0x00 0x00 0x00 0x00>;
+	accdet-plugout-debounce = <1>;
+	/*1:ACC mode, 2:low cost without in bias, 6:low cost with in bias*/
+	accdet-mic-mode = <1>;
+	/* eint_level_trigger: 8,LEVEL_LOW(DEF) ;4,LV_HIGH;others,LV_LOW */
+	headset-eint-level-pol = <8>;
+	/*0--MD_MAX--UP_MAX--DW_MAX*/
+	headset-three-key-threshold = <0 80 220 400>;
+	headset-three-key-threshold-CDD = <0 121 192 600>;
+	/*0--MD_MAX--VOICE_MAX--UP_MAX--DW_MAX*/
+	headset-four-key-threshold = <0 58 121 192 400>;
+	status = "okay";
+};
+/* accdet end */
+
+/* keypad start */
+&keypad {
+	pinctrl-names = "default";
+	pinctrl-0 = <&kpd_pins_default>;
+};
+
+&pio {
+	kpd_pins_default: kpdgpiodefault {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO93__FUNC_KPCOL0>;
+			bias-pull-up = <MTK_PUPD_SET_R1R0_10>;
+			input-enable;
+			input-schmitt-enable;
+		};
+	};
+};
+/* keypad end */
+
+/* CONSYS GPIO standardization */
+&pio {
+	consys_pins_default: consys_default {
+	};
+	gpslna_pins_init: gpslna@0 {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO42__FUNC_GPIO42>;
+			slew-rate = <1>;
+			bias-disable;
+			output-low;
+		};
+	};
+	gpslna_pins_oh: gpslna@1 {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO42__FUNC_GPIO42>;
+			slew-rate = <1>;
+			output-high;
+		};
+	};
+	gpslna_pins_ol: gpslna@2 {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO42__FUNC_GPIO42>;
+			slew-rate = <1>;
+			output-low;
+		};
+	};
+};
+&consys {
+	pinctrl-names = "default", "gps_lna_state_init",
+		"gps_lna_state_oh", "gps_lna_state_ol";
+	pinctrl-0 = <&consys_pins_default>;
+	pinctrl-1 = <&gpslna_pins_init>;
+	pinctrl-2 = <&gpslna_pins_oh>;
+	pinctrl-3 = <&gpslna_pins_ol>;
+	status = "okay";
+};
+/* CONSYS end */
+
+/* IRTX GPIO Start */
+&irtx_pwm {
+	pinctrl-names = "irtx_gpio_led_default", "irtx_gpio_led_set";
+	pinctrl-0 = <&irtx_gpio_led_default>;
+	pinctrl-1 = <&irtx_gpio_led_set>;
+	status = "okay";
+};
+&pio {
+	/* IRTX GPIO Settings -Start */
+	/* default: GPIO0, output, high */
+	irtx_gpio_led_default:irtx_gpio_led_def@gpio12 {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO12__FUNC_GPIO12>;
+			slew-rate = <1>;
+			bias-disable;
+			output-low;
+			input-schmitt-enable = <0>;
+		};
+	};
+
+	irtx_gpio_led_set:irtx_gpio_led_set@gpio12 {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO12__FUNC_PWM0>;
+			slew-rate = <1>;
+			output-high;
+		};
+	};
+}; /* IRTX GPIO Settings -End */
+
+/* DISPSYS GPIO standardization */
+&pio {
+	mtkfb_pins_lcm_rst_out1_gpio: lcm_rst_out1_gpio {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO45__FUNC_GPIO45>;
+			slew-rate = <1>;
+			output-high;
+		};
+	};
+
+	mtkfb_pins_lcm_rst_out0_gpio: lcm_rst_out0_gpio {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO45__FUNC_GPIO45>;
+			slew-rate = <1>;
+			output-low;
+		};
+	};
+
+	mtkfb_pins_lcm_dsi_te: lcm_dsi_te {
+		pins_cmd_dat {
+			pinmux = <PINMUX_GPIO44__FUNC_DSI_TE>;
+		};
+	};
+	i2c5_pin: i2c5_pin {
+		pins_cmd0_dat {
+			pinmux = <PINMUX_GPIO48__FUNC_SCL5>;
+			drive-strength = <2>;
+			bias-pull-up=<MTK_PULL_SET_RSEL_101>;
+		};
+		pins_cmd1_dat {
+			pinmux = <PINMUX_GPIO49__FUNC_SDA5>;
+			drive-strength = <2>;
+			bias-pull-up=<MTK_PULL_SET_RSEL_101>;
+        };
+    };
+};
+
+&mtkfb {
+	pinctrl-names =
+		"lcm_rst_out1_gpio", "lcm_rst_out0_gpio",
+		"mode_te_te";
+	pinctrl-0 = <&mtkfb_pins_lcm_rst_out1_gpio>;
+	pinctrl-1 = <&mtkfb_pins_lcm_rst_out0_gpio>;
+	pinctrl-2 = <&mtkfb_pins_lcm_dsi_te>;
+	status = "okay";
+};
+
+&dispsys_config {
+	pinctrl-names =
+		"lcm_rst_out1_gpio", "lcm_rst_out0_gpio",
+		"mode_te_te";
+	pinctrl-0 = <&mtkfb_pins_lcm_rst_out1_gpio>;
+	pinctrl-1 = <&mtkfb_pins_lcm_rst_out0_gpio>;
+	pinctrl-2 = <&mtkfb_pins_lcm_dsi_te>;
+	status = "okay";
+};
+
+&dsi0 {
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+	panel1@0 {
+		compatible = "hx83102e_boe_fhd_dsi_vdo";
+		reg = <0>;
+		/*pm-enable-gpios = <&pio 151 0>;*/
+		reset-gpios = <&pio 45 0>;
+		bias-gpios = <&pio 152 0>, <&pio 153 0>;
+		pinctrl-names = "default";
+		port {
+			panel_in1: endpoint {
+				remote-endpoint = <&dsi_out>;
+			};
+		};
+	};
+	panel2@1 {
+		compatible = "nt36523h_inx_fhd_dsi_vdo";
+		reg = <1>;
+		/*pm-enable-gpios = <&pio 151 0>;*/
+		reset-gpios = <&pio 45 0>;
+		bias-gpios = <&pio 152 0>, <&pio 153 0>;
+		pinctrl-names = "default";
+		port {
+			panel_in2: endpoint {
+				remote-endpoint = <&dsi_out2>;
+			};
+		};
+	};
+	panel3@2 {
+		compatible = "hx83102e_third_boe_fhd_dsi_vdo";
+		reg = <2>;
+		/*pm-enable-gpios = <&pio 151 0>;*/
+		reset-gpios = <&pio 45 0>;
+		bias-gpios = <&pio 152 0>, <&pio 153 0>;
+		pinctrl-names = "default";
+		port {
+			panel_in3: endpoint {
+				remote-endpoint = <&dsi_out3>;
+			};
+		};
+	};
+	panel4@3 {
+                compatible = "jd9366ts_inx_fhd_dsi_vdo";
+                reg = <3>;
+                /*pm-enable-gpios = <&pio 151 0>;*/
+                reset-gpios = <&pio 45 0>;
+                bias-gpios = <&pio 152 0>, <&pio 153 0>;
+                pinctrl-names = "default";
+                port {
+                        panel_in4: endpoint {
+                                remote-endpoint = <&dsi_out4>;
+                        };
+                };
+        };
+	ports {
+		port {
+			dsi_out: endpoint {
+				remote-endpoint = <&panel_in1>;
+			};
+
+			dsi_out2: endpoint2 {
+				remote-endpoint = <&panel_in2>;
+			};
+
+			dsi_out3: endpoint3 {
+				remote-endpoint = <&panel_in3>;
+			};
+			dsi_out4: endpoint4 {
+                                remote-endpoint = <&panel_in4>;
+                        };
+		};
+	};
+};
+
+&i2c7 {
+	mt6660: mt6660@34 {
+		compatible = "mediatek,mt6660";
+		#sound-dai-cells = <0>;
+		reg = <0x34>;
+		status = "okay";
+	};
+
+	sgm4154x: sgm4154x@0B {
+		status = "okay";
+		compatible = "sgm,sgm41543D";  
+		reg = <0x0B>;
+		sgm,irq-gpio = <&pio 7 0>;     //irq num base on hardware design
+		chg_name = "primary_chg";
+		/* sw jeita  parameter customer defined*/
+		enable_sw_jeita;
+		jeita_temp_above_t4_cv = <0>;
+		jeita_temp_t3_to_t4_cv = <4100000>;
+		jeita_temp_t2_to_t3_cv = <4350000>;
+		jeita_temp_t1_to_t2_cv = <4350000>;
+		jeita_temp_t0_to_t1_cv = <0>;
+		jeita_temp_below_t0_cv = <0>;
+
+		jeita_temp_above_t4_cc_current = <0>;
+		jeita_temp_t3_to_t4_cc_current = <1000000>;
+		jeita_temp_t2_to_t3_cc_current = <1250000>;
+		jeita_temp_t1_to_t2_cc_current = <1000000>;
+		jeita_temp_below_t0_cc_current = <0>;
+	
+		temp_t4_thres = <50>;
+		temp_t4_thres_minus_x_degree = <48>;
+		temp_t3_thres = <45>;
+		temp_t3_thres_minus_x_degree = <45>;
+		temp_t2_thres = <20>;
+		temp_t2_thres_plus_x_degree = <15>;
+		temp_t1_thres = <0>;
+		temp_t1_thres_plus_x_degree = <0>;
+		temp_t0_thres = <0>;
+		temp_t0_thres_plus_x_degree = <2>;
+		temp_neg_10_thres = <0>;
+	};	
+
+
+	sc8989x_charger: chg@6A{
+		compatible = "southchip,sc89890h";
+		reg = <0x6A>;
+		status = "okay";
+		sc,intr-gpio = <&pio 7 0>;
+		charger_name = "primary_chg";
+		sc,sc8989x,ico-en = <0>;
+		sc,sc8989x,hvdcp-en = <1>;
+		sc,sc8989x,auto-dpdm-en = <0>;
+		sc,sc8989x,vsys-min = <5>; /*3500mV*/
+		sc,sc8989x,vbatmin-sel = <0>; /*0:2.9V 1:2.5V*/
+		sc,sc8989x,itrick = <3>; /*60 + val *60*/
+		sc,sc8989x,iterm = <15>; /*30 + val * 60*/
+		sc,sc8989x,vbat-cv = <44>; /*3840 + val * 16*/
+		sc,sc8989x,vbat-low = <1>; /*0:2.8V 1:3V*/
+		sc,sc8989x,vrechg = <0>; /*0:100mV 1:200mV*/
+		sc,sc8989x,en-term = <1>;
+		sc,sc8989x,stat-dis = <0>;
+		sc,sc8989x,wd-time = <0>; /*0:Dis 1:40s 2:80s 3:160s*/
+		sc,sc8989x,en-timer = <1>;
+		sc,sc8989x,charge-timer = <2>; /*0:5h 1:8h 2:12h 3:20h*/
+		sc,sc8989x,bat-comp = <0>; /*val * 20*/
+		sc,sc8989x,vclamp = <0>; /*val *32*/
+		sc,sc8989x,votg = <12>; /*3900 + val * 100*/
+		sc,sc8989x,iboost = <7>; /*0:0.5A 3:1.4A 5:1.875A 7:2.45A*/
+		sc,sc8989x,force_vindpm = <0>; 
+		sc,sc8989x,vindpm = <18>; /*2600 + val * 100*/
+    };
+};
+
+&i2c5 {
+	clock-frequency = <100000>;
+	pinctrl-0 = <&i2c5_pin>;
+	mm8013c10:mm8013c10@55 {
+		compatible = "mitsumi,mm8013c10";
+		charger = <&sgm4154x &sc8989x_charger>;
+		reg = <0x55>;
+		status = "okay";
+	};
+};
+
+&i2c6 {
+    clock-frequency = <1000000>;
+
+    upm7610@60 {
+		compatible = "up,upm7610";
+		reg = <0x60>;
+		status = "okay";
+		rt-tcpc,name = "type_c_port0"; /* tcpc_device's name */
+		rt-tcpc,role_def = <5>; /* 0: Unknown, 1: SNK, 2: SRC */
+					/* 3: DRP, 4: Try.SRC, 5: Try.SNK */
+		rt-tcpc,rp_level = <0>; /* 0: Default, 1: 1.5, 2: 3.0 */
+		rt-tcpc,vconn_supply  = <1>;  /* 0: Never, 1: Always, */
+					      /* 2: EMarkOnly, 3: StartOnly */
+		rt-tcpc,notifier_supply_num = <3>;
+		upm7610pd,intr_gpio = <&pio 41 0x0>;
+		upm7610pd,intr_gpio_num = <41>;
+		pd-data {
+    			pd,vid = <0x362f>;
+			pd,pid = <0x7610>;
+			pd,source-cap-ext = <0x7610362f 0x00000000 0x00000000
+					     0x00000000 0x00000000 0x02000000>;
+			pd,mfrs = "UnisemipowerTCPC";
+	
+			/*
+			 *	VSAFE5V = 0, MAX_POWER = 1, CUSTOM = 2,
+			 *	MAX_POWER_LV = 0x21, MAX_POWER_LVIC = 0x31
+			 *	MAX_POWER_HV = 0x41, MAX_POWER_HVIC = 0x51
+			 */
+			pd,charging_policy= <0x31>;
+			
+			/*
+			 * Fixed 5V, 500 mA <0x00019032>
+			 * Fixed 5V, 1A <0x00019064>
+			 * Fixed 5V, 2A <0x000190c8>
+			 * Fixed 5V, 3A <0x0001912c>
+			 * Fixed 9V, 500 mA <0x0002d032>
+			 * Fixed 9V, 1A <0x0002d064>
+			 * Fixed 9V, 2A <0x0002d0c8>
+			 * Fixed 9V, 3A <0x0002d12c>
+			 * Variable 5-9V, 1A <0x8642d064>
+			 * Variable 5-9V, 2A <0x8642d0c8>
+			 * Variable 5-9V, 3A <0x8642d12c>
+			 * PPS 3V~5.9V, 3A <0xC0761E3C>
+ 			*/
+			pd,source-pdo-size = <1>;
+			pd,source-pdo-data = <0x00019032>;
+			pd,sink-pdo-size = <2>;
+			/*pd,sink-pdo-data = <0x000190c8 0x0002d0c8>;*/
+			pd,sink-pdo-data = <0x000190c8 0x0002d12c>;
+			/*pd,sink-pdo-data = <0x00019096 0x0002d0a7 0xC0B43237>; //5V,1.5A 9V,1.67A*/
+
+			/*
+			 * No DP, host + device
+			 *	pd,id-vdo-size = <6>;
+			 *	pd,id-vdo-data = <0xd14029cf 0x0 0x17110000
+						  0x41800000 0x0 0x21800000>;
+			 * With DP
+			 *	pd,id-vdo-size = <6>;
+			 *	pd,id-vdo-data = <0xd54029cf 0x0 0x17110000
+						  0x41800000 0x0 0x21800000>;
+			 */
+
+			pd,id-vdo-size = <6>;
+			pd,id-vdo-data = <0xd140362f 0x0 0x76100000
+					  0x41800000 0x0 0x21800000>;
+
+			bat,nr = <1>;
+			pd,country_nr = <0>;
+
+			bat-info0 {
+				bat,vid = <0x362f>;
+				bat,pid = <0x7610>;
+				bat,mfrs = "bat1";
+				bat,design_cap = <3000>;
+			};
+
+			//bat-info1 {
+			//	bat,vid = <0x8abc>;
+			//	bat,pid = <0x5234>;
+			//	bat,mfrs = "bat2";
+			//	bat,design_cap = <4000>;
+			//};
+
+			//country0 {
+			//	pd,country_code = <0x5457>;
+			//	pd,country_len = <2>; /* max len = 26 */
+			//	pd,country_data = <0xff 0xff>;
+			//};
+
+			//country1 {
+			//	pd,country_code = <0x5553>;
+			//	pd,country_len = <3>; /* max len = 26 */
+			//	pd,country_data = <0xf1 0xf2 0xf3>;
+			//};
+		};
+
+		dpm_caps {
+			local_dr_power;
+			local_dr_data;
+			//local_ext_power;
+			local_usb_comm;
+			//local_usb_suspend;
+			//local_high_cap;
+			//local_give_back;
+			local_no_suspend;
+			local_vconn_supply;
+
+			//attemp_discover_cable_dfp;
+			attemp_enter_dp_mode;
+			attemp_discover_cable;
+			attemp_discover_id;
+
+			/* 0: disable, 1: prefer_snk, 2: prefer_src */
+			pr_check = <0>;
+			//pr_reject_as_source;
+			//pr_reject_as_sink;
+			//pr_check_gp_source;
+			//pr_check_gp_sink;
+		};
+		displayport {
+			/* connection type = "both", "ufp_d", "dfp_d" */
+			1st_connection = "dfp_d";
+			2nd_connection = "dfp_d";
+			signal,dp_v13;
+			//signal,dp_gen2;
+			//usbr20_not_used;
+			typec,receptacle;
+			ufp_d {
+				//pin_assignment,mode_a;
+				//pin_assignment,mode_b;
+				//pin_assignment,mode_c;
+				//pin_assignment,mode_d;
+				//pin_assignment,mode_e;
+			};
+			dfp_d {
+				//pin_assignment,mode_a;
+				//pin_assignment,mode_b;
+				pin_assignment,mode_c;
+				pin_assignment,mode_d;
+				pin_assignment,mode_e;
+				//pin_assignment,mode_f;
+			};
+
+		};
+	};
+    
+
+    cps8851:cps8851_type_c_port0@4e{
+        compatible = "cps,cps8851";
+        reg = <0x4e>;
+        status = "okay";
+        rt-dual,supported_modes = <0>; /* 0: dfp/ufp, */
+                         /* 1: dfp, 2: ufp */
+        rt-tcpc,name = "type_c_port0"; /* tcpc_device's name */
+        rt-tcpc,role_def = <5>; /* 1: SNK Only, 2: SRC Only, 3: DRP, */
+                    /* 4: Try.SRC, 5: Try.SNK */
+        rt-tcpc,rp_level = <0>; /* 0: Default, 1: 1.5, 2: 3.0 */
+        cps-tcpc,vconn_supply  = <0>;  /* 0: Never, 1: Always, */
+                          /* 2: EMarkOnly, 3: StartOnly */
+        rt1711pd,intr_gpio = <&pio 41 0>;
+        cps8851,intr_gpio_num = <41>;
+        charger = <&sc8989x_charger>;
+
+        pd-data {
+            pd,vid = <0x315c>;
+            pd,pid = <0x8851>;
+            pd,source-cap-ext = <0x8851315c 0x00000000 0x00000000
+                        0x00000000 0x00000000 0x06000000 0x00000000>;
+            pd,sink-cap-ext = <0x8851315c  0x00000000 0x00010000
+                        0x00000000 0x05000000 0x0000000f>;
+            pd,mfrs = "CPS_TCPC";
+
+            /*
+             *    VSAFE5V = 0, MAX_POWER = 1, CUSTOM = 2,
+             *    MAX_POWER_LV = 0x21, MAX_POWER_LVIC = 0x31
+             *    MAX_POWER_HV = 0x41, MAX_POWER_HVIC = 0x51
+             */
+            pd,charging_policy= <0x52>;
+
+            /*
+             * Fixed 5V, 500 mA <0x00019032>
+             * Fixed 5V, 1A <0x00019064>
+             * Fixed 5V, 2A <0x000190c8>
+             * Fixed 5V, 3A <0x0001912c>
+             * Fixed 9V, 500 mA <0x0002d032>
+             * Fixed 9V, 1A <0x0002d064>
+             * Fixed 9V, 2A <0x0002d0c8>
+             * Fixed 9V, 3A <0x0002d12c>
+             * Variable 5-9V, 1A <0x8642d064>
+             * Variable 5-9V, 2A <0x8642d0c8>
+             * Variable 5-9V, 3A <0x8642d12c>
+             * PPS 3V~5.9V, 3A <0xC0761E3C>
+             */
+            pd,source-pdo-size = <1>;
+            pd,source-pdo-data = <0x00019078>;
+            pd,sink-pdo-size = <2>;
+            pd,sink-pdo-data = <0x0001912c 0x0002d0a5>; // 9V1.65A   0x0002d0a5
+
+            /*
+             * No DP, host + device
+             *    pd,id-vdo-size = <3>;
+             *    pd,id-vdo-data = <0xd10029cf 0x0 0x17110000>;
+             * With DP
+             *    pd,id-vdo-size = <3>;
+             *    pd,id-vdo-data = <0xd60029cf 0x0 0x17110000
+             */
+
+            pd,id-vdo-size = <6>;
+            pd,id-vdo-data = <0xd140315c 0x0 0x88510000 0x61000000 0x0 0x41000000>;
+
+            bat,nr = <1>;
+            pd,country_nr = <0>;
+
+            bat-info0 {
+                bat,vid = <0x315c>;
+                bat,pid = <0x8851>;
+                bat,mfrs = "bat1";
+                bat,design_cap = <5000>;
+            };
+
+            //bat-info1 {
+            //    bat,vid = <0x8abc>;
+            //    bat,pid = <0x5234>;
+            //    bat,mfrs = "bat2";
+            //    bat,design_cap = <4000>;
+            //};
+
+            //country0 {
+            //    pd,country_code = <0x5457>;
+            //    pd,country_len = <2>; /* max len = 26 */
+            //    pd,country_data = <0xff 0xff>;
+            //};
+
+            //country1 {
+            //    pd,country_code = <0x5553>;
+            //    pd,country_len = <3>; /* max len = 26 */
+            //    pd,country_data = <0xf1 0xf2 0xf3>;
+            //};
+        };
+
+        dpm_caps {
+            local_dr_power;
+            local_dr_data;
+            //local_ext_power;
+            local_usb_comm;
+            //local_usb_suspend;
+            //local_high_cap;
+            //local_give_back;
+
+            //local_no_suspend;
+            //local_vconn_supply;
+
+
+            //attemp_discover_cable_dfp;
+            // attemp_enter_dp_mode;
+            // attemp_discover_cable;
+            // attemp_discover_id;
+
+            /* 0: disable, 1: prefer_snk, 2: prefer_src */
+            pr_check = <0>;
+
+            //pr_reject_as_source;
+            //pr_reject_as_sink;
+
+
+            //pr_check_gp_source;
+            //pr_check_gp_sink;
+
+            /* 0: disable, 1: prefer_ufp, 2: prefer_dfp */
+            dr_check = <0>;
+            //dr_reject_as_dfp;
+            //dr_reject_as_ufp;
+        };
+
+    };
+};
+
+&charger {
+	compatible = "mediatek,charger";
+	charger = <&sgm4154x &sc8989x_charger>;
+	gauge = <&mm8013c10>;
+};
+
+&mtk_gauge {
+	DISABLE_MTKBATTERY;
+};
+
+&mtk_ctd {
+	compatible = "mediatek,mtk_ctd";
+	bc12 = <&sc8989x_charger>;
+	bc12_2 = <&sgm4154x>;
+	bc12_sel = <0>;
+};
+
+&extcon_usb {
+	compatible = "mediatek,extcon-usb";
+	charger = <&sc8989x_charger>;
+        charger1 = <&sgm4154x>;
+};
+
+&u2port0 {
+		mediatek,eye-vrt = <7>;
+		mediatek,eye-term = <3>;
+		mediatek,rev6 = <3>;
+		mediatek,eye-vrt-host = <7>;
+		mediatek,eye-term-host = <3>;
+		mediatek,rev6-host = <3>;
+};
+&sound {
+	mediatek,spk-i2s = <1 2>;
+	mediatek,speaker-codec {
+		sound-dai = <&aw883xx_smartpa_0 &aw883xx_smartpa_1>;
+	};
+};
+
+&mhall {
+	compatible = "poplar,hall";
+	hall,irq-gpio = <&pio 5 0x00>;
+};
+
+&ant_check {
+	compatible = "ant_check";
+	ant_check_gpio = <&pio 91 0x0>;
+};
+
+/* DISPSYS GPIO standardization end*/
+
+#include <tb8786p1_64_k66/cust.dtsi>
+#include "mediatek/cust_mt6768_camera.dtsi"
+
+#include "mediatek/poplar_tb8786p1_touch_1200x1920.dtsi"
+/*#include "mediatek/cust_tb8786p1_touch_hx83102e_1200x1920.dtsi"*/
+#include "mediatek/cust_mt6768_sar.dtsi"
+/*#include "mediatek/cust_mt6768_touch_1080x2160.dtsi"*/
+/*End of this file, DO NOT ADD ANYTHING HERE*/
